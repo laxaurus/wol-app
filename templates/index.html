@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wake-on-LAN and Ping Status</title>
+    <style>
+        .button {
+            padding: 20px;
+            font-size: 24px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        .ip-input {
+            padding: 10px;
+            font-size: 18px;
+            margin: 10px;
+        }       
+        .input-field {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }         
+    </style>
+</head>
+<body>
+
+    <select class="input-field" id="macList">
+        <option value="">Select a device or enter MAC address below</option>
+        {% for device_name, setting in devices.items() %}
+            <option value="{{ setting['mac'] }}">{{ device_name }} ({{ setting['mac'] }})</option>
+        {% endfor %}
+    </select>
+    <button class="button" onclick="wakeDevice()">Wake Device</button>
+    <select class="input-field" id="ipList">
+        <option value="">Select a device or enter IP address below</option>
+        {% for device_name, setting in devices.items() %}
+            <option value="{{ setting['ip'] }}">{{ device_name }} ({{ setting['ip'] }})</option>
+        {% endfor %}
+    </select>    
+    
+    <button class="button" onclick="checkStatus()">Check Status</button>
+    <script>
+        function wakeDevice() {
+            
+            var macSelect = document.getElementById('macList').value;
+            var mac = macSelect;
+            if (!mac) {
+                alert("Please enter a MAC address or select a device.");
+                return;
+            }
+            fetch('/wake', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ mac_address: mac })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+        
+        function checkStatus() {
+            var ip = document.getElementById('ipList').value;
+            fetch('/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ip_address: ip })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+    </script>
+</body>
+</html>

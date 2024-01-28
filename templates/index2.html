@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wake-on-LAN and Ping Status</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            border-radius: 5px;
+            
+            max-width: 500px; /* Maximum width for larger screens */
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s ease;
+            width: 100%; /* Full width on mobile */
+            box-sizing: border-box; /* Include padding in width */
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .input-field {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            width: 100%; /* Full width on mobile */
+            box-sizing: border-box; /* Include padding in width */
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        /* Responsive button sizing for larger screens */
+        @media (min-width: 768px) {
+            .button {
+                font-size: 18px;
+                padding: 15px 30px;
+                width: auto; /* Auto width on larger screens */
+            }
+            .label {
+                font-size: 16px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-group">
+            <label for="macList" class="label">MAC Address:</label>
+            <select class="input-field" id="macList">
+                <option value="">Select a device or enter MAC address below</option>
+                {% for device_name, setting in devices.items() %}
+                    <option value="{{ setting['mac'] }}">{{ device_name }} ({{ setting['mac'] }})</option>
+                {% endfor %}
+            </select>
+            <button class="button" onclick="wakeDevice()">Wake Device</button>
+        </div>
+        
+        <div class="input-group">
+            <label for="ipList" class="label">IP Address:</label>
+            <select class="input-field" id="ipList">
+                <option value="">Select a device or enter IP address below</option>
+                {% for device_name, setting in devices.items() %}
+                    <option value="{{ setting['ip'] }}">{{ device_name }} ({{ setting['ip'] }})</option>
+                {% endfor %}
+            </select>    
+            <button class="button" onclick="checkStatus()">Check Status</button>
+        </div>
+    </div>
+
+    <script>
+    
+        function wakeDevice() {
+            
+            var macSelect = document.getElementById('macList').value;
+            var mac = macSelect;
+            if (!mac) {
+                alert("Please enter a MAC address or select a device.");
+                return;
+            }
+            fetch('/wake', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ mac_address: mac })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+        
+        function checkStatus() {
+            var ip = document.getElementById('ipList').value;
+            fetch('/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ip_address: ip })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+    </script>
+    
+</body>
+</html>
