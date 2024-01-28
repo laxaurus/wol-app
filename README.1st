@@ -45,8 +45,25 @@ Configuration
 The config.json file contains the device configurations. Update this file with the devices you want to wake up or check the status of. An example configuration is provided in the file.
 Troubleshooting
 
+    Note: It is important to use the --network host flag when running the Docker container to ensure that the Wake-on-LAN packets can reach the devices on your network.
     If you encounter any issues during the Docker build or run process, make sure you have Docker installed correctly and that there are no conflicts with other running containers or services on your system.
     If you are unable to access the WOL app at http://localhost:8081, check if there are any firewall or network restrictions that may be blocking the port.
+
+
+Sample docker-compose.yml
+
+    version: "2.1"
+    services:
+    wol-app:
+        container_name: wol-app 
+        image: laxaurus/wol-repo:0.1 
+        restart: "no" 
+        network_mode: host
+        volumes:
+        - ./config/config.json:/app/config/config.json
+
+
+
 
 Contributing
 
