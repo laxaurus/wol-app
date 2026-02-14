@@ -21,20 +21,35 @@ class DocumentProcessor:
         
     def find_document_boundary(self, frame):
         """
-        Find document boundary by detecting rectangular shapes in the frame
-        when hands are not detected
+        Find document boundary by detecting light-colored rectangular shapes in the frame
+        when hands are not detected. Optimized for detecting documents on dark backgrounds.
         """
         # Convert to grayscale
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         
-        # Apply Gaussian blur
+        # Apply Gaussian blur to reduce noise
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         
-        # Apply edge detection
-        edges = cv2.Canny(blurred, 50, 150)
+        # Use morphological operations to enhance light regions on dark background
+        # Top-hat transformation to highlight bright spots
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (9, 9))
+        tophat = cv2.morphologyEx(blurred, cv2.MORPH_TOPHAT, kernel)
+        
+        # Enhance the bright regions
+        enhanced = cv2.add(blurred, tophat)
+        
+        # Apply adaptive threshold to highlight document areas
+        thresh = cv2.adaptiveThreshold(
+            enhanced, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
+        )
+        
+        # Additional morphological operations to clean up the threshold result
+        kernel_small = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel_small)
+        thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel_small)
         
         # Find contours
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         # Look for rectangular contours (potential documents)
         document_contour = None
